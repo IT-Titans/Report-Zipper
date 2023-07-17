@@ -1,0 +1,22 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- script: echo Placeholder!
+  displayName: 'Run a one-line script'
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      Add-Type -A 'System.IO.Compression.FileSystem'
+      [IO.Compression.ZipFile]::CreateFromDirectory('$(Build.SourcesDirectory)/PathToYourCoverageReports', '$(Build.ArtifactStagingDirectory)/coverage.zip')
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/coverage.zip' 
+    artifactName: 'CoverageReports'
+    publishLocation: 'Container'
