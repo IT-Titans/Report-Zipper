@@ -1,22 +1,31 @@
 trigger:
 - master
 
+variables:
+  coverageReportDir: 'PathToYourCoverageReports'
+  zipFile: 'coverage.zip'
+
 pool:
   vmImage: 'windows-latest'
 
 steps:
-- script: echo Placeholder!
+- script: echo Creating a zipped coverage report...
   displayName: 'Run a one-line script'
 
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
     script: |
-      Add-Type -A 'System.IO.Compression.FileSystem'
-      [IO.Compression.ZipFile]::CreateFromDirectory('$(Build.SourcesDirectory)/PathToYourCoverageReports', '$(Build.ArtifactStagingDirectory)/coverage.zip')
+      try {
+        Add-Type -A 'System.IO.Compression.FileSystem'
+        [IO.Compression.ZipFile]::CreateFromDirectory('$(Build.SourcesDirectory)/$(coverageReportDir)', '$(Build.ArtifactStagingDirectory)/$(zipFile)')
+      } catch {
+        Write-Error "Failed to create zip file: $_"
+        exit 1
+      }
 
 - task: PublishBuildArtifacts@1
   inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)/coverage.zip' 
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/$(zipFile)' 
     artifactName: 'CoverageReports'
     publishLocation: 'Container'
